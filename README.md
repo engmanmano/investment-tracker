@@ -220,7 +220,34 @@ Set a **recurring alarm** on your phone:
 
 ---
 
-## 📋 Pending Action Items
+## 🚀 V2 Roadmap
+
+### 🔴 High Priority
+- [ ] **Auto-update fund balances on payday log** — when checklist is completed, automatically add invested amount to MP2, MMF, REITs, and other funds. Stocks/ETF/Crypto flagged separately for manual price update.
+- [ ] **"Update Prices" prompt after payday** — after logging a payday, show a quick screen listing all stocks/ETF/crypto positions and ask for current price. One tap per holding, updates `current_value` instantly.
+- [ ] **Manual current value editor in Portfolio** — tap any investment → edit current value inline. For stocks, enter today's price × units = auto-calculated.
+
+### 🟡 Medium Priority
+- [ ] **Growth chart** — line chart on Dashboard showing portfolio total over time (uses `payday_logs` data). Empty until a few paydays are logged.
+- [ ] **Per-investment goal progress** — each investment shows progress toward its own target (e.g. OGP: ₱6,830 / ₱50,000)
+- [ ] **PERA auto-calculate from transactions** — instead of manually updating `pera_annual_contributed` in settings, auto-sum all PERA transactions for current year
+- [ ] **Payday log auto-selects date** — pre-fill today's date when logging, editable if backdating
+- [ ] **Add/remove investments via Settings UI** — currently requires SQL. Build a simple form in Settings screen to add new investments without touching the database directly.
+
+### 🟢 Nice to Have
+- [ ] **Multi-user support** — add `user_id` to all tables, update RLS policies. Currently any authenticated user sees all data.
+- [ ] **COOP tracker** — dedicated view showing accumulation progress toward ₱50K TD threshold
+- [ ] **VWRA quarterly reminder** — notification/badge when GoTyme staging balance hits ₱9,000+ (3 months accumulated), reminding you to deploy to IBKR
+- [ ] **MBT consolidation reminder** — badge on MBT (COL) showing current price vs ₱69.50 avg, reminding you to consolidate to PERA when price is right
+- [ ] **Dividend tracker** — log dividends received per stock, show total passive income earned
+- [ ] **Export to CSV** — download full transaction history as spreadsheet
+- [ ] **Dark/light mode toggle**
+- [ ] **Cowork integration** — edit index.html directly from desktop without GitHub workflow
+
+### 🔵 Known Issues to Fix
+- [ ] Payday checklist does not auto-update `amount_invested` / `current_value` in investments table after logging (workaround: update manually via SQL)
+- [ ] `pera_annual_contributed` in settings is manually set — does not auto-calculate from actual transactions
+- [ ] Auth redirect URL points to localhost on email confirmation click — fix by setting Site URL in Supabase → Authentication → URL Configuration to `https://engmanmano.github.io/investment-tracker`
 
 - [ ] MBT (COL) → consolidate to DragonFi PERA when price approaches ₱69.50 avg (currently at loss — actually no CGT if sold now, consider it)
 - [ ] Check UnionBank group life insurance coverage amount
