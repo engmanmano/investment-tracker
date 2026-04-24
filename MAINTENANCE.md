@@ -502,6 +502,7 @@ order by is_active desc, name;
 | `MAN-APAC-REIT` | Manulife Asia Pacific REIT | GCash GFunds |
 | `ATRAM-TECH` | ATRAM Global Tech Feeder | GCash GFunds |
 | `VUAA` | Vanguard S&P 500 UCITS ETF | IBKR |
+| `COOP-PROVIDERS` | Providers Cooperative Shared Capital | Providers COOP |
 | `BTC` | Bitcoin | Maya Crypto |
 | `DOGE` | Dogecoin | Maya Crypto |
 | `STRK` | Starknet | Bitget |
