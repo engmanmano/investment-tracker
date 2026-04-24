@@ -374,9 +374,10 @@ function Dashboard({ onNavigate }) {
         const goal = parseFloat(settings.portfolio_goal_php || '1000000');
         const peraContrib = parseFloat(settings.pera_annual_contributed || '102000');
         const peraLimit = parseFloat(settings.pera_annual_limit || '200000');
+        const peraBalance = investments.filter(i => i.is_pera).reduce((s,i) => s + (i.current_value || i.amount_invested || 0), 0);
 
         setData({ investments, settings, rate, phpCurrent, usdCurrent, combined,
-          combinedInvested, goal, lastPayday, peraContrib, peraLimit });
+          combinedInvested, goal, lastPayday, peraContrib, peraLimit, peraBalance });
       } catch(e) { console.error(e); }
       setLoading(false);
     }
@@ -428,13 +429,17 @@ function Dashboard({ onNavigate }) {
         {/* Stats row */}
         <div className="stat-row">
           <div className="stat-card">
-            <div className="stat-label">PERA Annual</div>
-            <div className="stat-value" style={{fontSize:16,color:'var(--pink)'}}>{fp(data.peraContrib)}</div>
-            <div className="stat-sub">{fp(data.peraLimit - data.peraContrib)} room left</div>
+            <div className="stat-label">PERA Annual Plan</div>
+            <div className="stat-value" style={{fontSize:16,color:'var(--pink)'}}>{fp(data.peraContrib)}<span style={{fontSize:10,color:'var(--text3)'}}>/yr</span></div>
+            <div className="stat-sub">{fp(data.peraLimit - data.peraContrib)} annual room left</div>
             <div className="pbar" style={{marginTop:8}}>
               <div className="pbar-fill" style={{width:`${peraPct}%`,background:'var(--pink)'}}/>
             </div>
             <div style={{fontSize:10,color:'var(--text3)',marginTop:4}}>Tax credit: {fp(data.peraContrib*0.05)}/yr 🎁</div>
+            <div style={{borderTop:'1px solid var(--border)',marginTop:8,paddingTop:8}}>
+              <div style={{fontSize:9,letterSpacing:1,color:'var(--text3)',textTransform:'uppercase',marginBottom:3}}>Current PERA Balance</div>
+              <div style={{fontSize:14,fontWeight:600,color:'var(--pink)'}}>{fp(data.peraBalance)}</div>
+            </div>
           </div>
           <div className="stat-card">
             <div className="stat-label">₱1M Goal</div>
