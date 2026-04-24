@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="InvestTrack">
+<meta name="theme-color" content="#080b08">
+<title>InvestTrack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#080b08;--surface:#0f150f;--surface2:#162016;
+  --border:#1e2e1e;--border2:#2a3d2a;
+  --text:#e0ebe0;--text2:#8aab8a;--text3:#4a6a4a;
+  --green:#4ade80;--green2:#22c55e;
+  --pink:#f472b6;--orange:#fb923c;--yellow:#facc15;
+  --blue:#60a5fa;--red:#f87171;--teal:#34d399;
+  --serif:'Playfair Display',serif;
+  --mono:'JetBrains Mono',monospace;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--mono);overflow:hidden}
+#root{height:100%;display:flex;flex-direction:column}
+.app{display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto;width:100%}
+.screen{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:80px}
+.screen::-webkit-scrollbar{width:0}
+
+/* Bottom Nav */
+.bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;
+  background:var(--surface);border-top:1px solid var(--border);
+  display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:10px 0;border:none;background:transparent;color:var(--text3);
+  font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;
+  cursor:pointer;transition:color .2s;gap:4px}
+.bnav-btn.active{color:var(--green)}
+.bnav-btn svg{width:20px;height:20px}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
+.card+.card{margin-top:10px}
+
+/* Header */
+.header{padding:20px 16px 12px;background:linear-gradient(180deg,var(--surface2) 0%,transparent 100%)}
+.header-title{font-family:var(--serif);font-size:22px;color:var(--text);line-height:1.2}
+.header-sub{font-size:10px;color:var(--text3);letter-spacing:3px;text-transform:uppercase;margin-bottom:4px}
+
+/* Section labels */
+.slabel{font-size:9px;letter-spacing:3px;color:var(--text3);text-transform:uppercase;margin-bottom:8px}
+
+/* Inputs */
+input{background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+  border-radius:8px;padding:10px 14px;font-family:var(--mono);font-size:14px;
+  outline:none;width:100%;transition:border-color .2s}
+input:focus{border-color:var(--green)}
+input::placeholder{color:var(--text3)}
+
+/* Buttons */
+.btn{display:block;width:100%;padding:12px;border:none;border-radius:8px;
+  font-family:var(--mono);font-size:13px;font-weight:600;cursor:pointer;
+  letter-spacing:1px;transition:all .2s}
+.btn-primary{background:var(--green);color:#052e16}
+.btn-primary:hover{background:var(--green2)}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}
+
+/* Progress bar */
+.pbar{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.pbar-fill{height:100%;border-radius:3px;transition:width .5s ease}
+
+/* Chips */
+.chip{display:inline-block;padding:3px 8px;border-radius:20px;font-size:10px;letter-spacing:1px;text-transform:uppercase}
+
+/* Investment rows */
+.inv-row{display:flex;align-items:center;gap:10px;padding:11px 13px;
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:7px}
+.inv-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.inv-info{flex:1;min-width:0}
+.inv-name{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inv-sub{font-size:10px;color:var(--text3);margin-top:2px}
+.inv-amt{text-align:right;flex-shrink:0}
+.inv-value{font-size:13px;font-weight:600}
+.inv-gain{font-size:10px;margin-top:2px}
+
+/* Checklist items */
+.check-item{display:flex;align-items:center;gap:11px;padding:11px 13px;
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  margin-bottom:7px;cursor:pointer;transition:all .2s}
+.check-item.done{background:rgba(74,222,128,.05);border-color:rgba(74,222,128,.2)}
+.check-box{width:22px;height:22px;border-radius:6px;border:2px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.check-box.checked{background:var(--green);border-color:var(--green)}
+
+/* Step cards */
+.step-card{display:flex;align-items:center;gap:12px;padding:12px 13px;
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  margin-bottom:7px;cursor:pointer;transition:all .2s}
+.step-card.done{background:rgba(74,222,128,.05);border-color:rgba(74,222,128,.2)}
+.step-icon{width:36px;height:36px;border-radius:50%;background:var(--surface2);
+  display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;transition:all .2s}
+.step-icon.done{background:var(--green);font-size:15px}
+
+/* Tabs */
+.tabs{display:flex;border-bottom:1px solid var(--border)}
+.tab{flex:1;padding:10px 0;background:transparent;border:none;color:var(--text3);
+  font-family:var(--mono);font-size:12px;cursor:pointer;transition:all .2s;
+  border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+
+/* Login */
+.login-wrap{display:flex;flex-direction:column;justify-content:center;min-height:100vh;
+  padding:32px 24px;background:var(--bg)}
+
+/* Stat cards */
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px}
+.stat-label{font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-bottom:6px}
+.stat-value{font-size:20px;font-weight:600;line-height:1}
+.stat-sub{font-size:10px;color:var(--text2);margin-top:4px}
+
+/* History items */
+.hist-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:14px;margin-bottom:8px}
+
+/* Settings rows */
+.srow{display:flex;justify-content:space-between;align-items:center;
+  padding:14px;background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;margin-bottom:7px}
+.srow-label{font-size:13px;color:var(--text)}
+.srow-value{font-size:13px;color:var(--green);font-weight:500}
+
+/* Gain/Loss colors */
+.gain{color:var(--green)}
+.loss{color:var(--red)}
+.neutral{color:var(--text2)}
+
+/* Loading */
+.splash{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100vh;gap:16px;background:var(--bg)}
+.splash-title{font-family:var(--serif);font-size:28px;color:var(--green)}
+.splash-sub{font-size:10px;letter-spacing:4px;color:var(--text3);text-transform:uppercase}
+.spinner{width:32px;height:32px;border:2px solid var(--border2);border-top-color:var(--green);
+  border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.empty{text-align:center;padding:40px 20px;color:var(--text3);font-size:13px}
+
+/* Category colors map */
+.cat-gov{color:var(--green)}
+.cat-pera{color:var(--pink)}
+.cat-intl{color:var(--orange)}
+.cat-reits{color:var(--yellow)}
+.cat-coop{color:var(--teal)}
+.cat-funds{color:#a78bfa}
+.cat-crypto{color:var(--yellow)}
+.cat-stock{color:var(--blue)}
+.cat-etf{color:var(--orange)}
+.cat-government{color:var(--green)}
+.cat-cooperative{color:var(--teal)}
+.cat-fund{color:#a78bfa}
+.cat-reit{color:var(--yellow)}
+.cat-buffer{color:#94a3b8}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;
+  display:flex;align-items:flex-end;justify-content:center}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:16px 16px 0 0;
+  padding:24px;width:100%;max-width:480px;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useCallback, useMemo } = React;
+const { createClient } = window.supabase;
+
+// ── SUPABASE ──────────────────────────────────────────────
+const SUPABASE_URL = 'https://fimxumrsegtkcgsnhjzy.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_SISPn15jUjWY_J5gyihlIA_gfz4vFo1';
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── PAYDAY PLANS ─────────────────────────────────────────
+const PAYDAY_10 = [
+  { id:'p10_mp2',   label:'MP2',                         cat:'gov',    amount:2000, note:'Pag-IBIG MP2 · tax-free ~7%' },
+  { id:'p10_vwra',  label:'VWRA (stage in GoTyme)',       cat:'intl',   amount:3000, note:'GoTyme → WISE → IBKR quarterly' },
+  { id:'p10_mbt',   label:'MBT (DragonFi PERA)',          cat:'pera',   amount:1000, note:'PERA · avg ₱67.50' },
+  { id:'p10_coop',  label:'COOP Providers (Maya Goal)',   cat:'coop',   amount:1000, note:'Stage in Maya · toward ₱50K TD' },
+  { id:'p10_reits', label:'Manulife Asia Pacific REITs',  cat:'reits',  amount:1000, note:'GCash GFunds' },
+  { id:'p10_bpi',   label:'BPI PERA MMF',                 cat:'pera',   amount:500,  note:'DragonFi PERA' },
+  { id:'p10_buf',   label:'Buffer',                       cat:'buffer', amount:1500, note:'Stay in GoTyme · deploy only when clear opportunity exists' },
+];
+const PAYDAY_20 = [
+  { id:'p20_mp2',  label:'MP2',                      cat:'gov',    amount:1000, note:'Pag-IBIG MP2' },
+  { id:'p20_ogp',  label:'OGP (DragonFi PERA)',       cat:'pera',   amount:3500, note:'1 board lot ~₱3,400 · hold until 2036' },
+  { id:'p20_sgp',  label:'SGP (DragonFi PERA)',       cat:'pera',   amount:2500, note:'1 board lot ~₱2,200 · hold until 2033' },
+  { id:'p20_dmc',  label:'DMC (DragonFi PERA)',       cat:'pera',   amount:1000, note:'1 board lot ~₱1,000' },
+  { id:'p20_gtf',  label:'Global Tech Feeder Fund',   cat:'funds',  amount:1000, note:'GCash GFunds · ATRAM' },
+  { id:'p20_cry',  label:'Crypto (5 × ₱200)',         cat:'crypto', amount:1000, note:'Bitget · quantum-resistant thesis' },
+];
+
+const CAT_COLOR = {
+  gov:'#4ade80',pera:'#f472b6',intl:'#fb923c',reits:'#f59e0b',
+  coop:'#34d399',funds:'#a78bfa',crypto:'#facc15',buffer:'#94a3b8',
+  stock:'#60a5fa',etf:'#fb923c',government:'#4ade80',cooperative:'#34d399',
+  fund:'#a78bfa',reit:'#f59e0b',
+};
+const CAT_LABEL = {
+  gov:'Government',pera:'PERA',intl:'Intl / IBKR',reits:'REITs',
+  coop:'Cooperative',funds:'Funds',crypto:'Crypto',buffer:'Buffer',
+  stock:'Stocks',etf:'ETF',government:'Government',cooperative:'Cooperative',
+  fund:'Fund',reit:'REIT',
+};
+
+// ── UTILS ─────────────────────────────────────────────────
+const fp = n => '₱' + Number(n||0).toLocaleString('en-PH',{minimumFractionDigits:0,maximumFractionDigits:0});
+const fd = n => '$' + Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const pct = (a,b) => b ? (((a-b)/b)*100).toFixed(1) : '0.0';
+
+function getNextPayday() {
+  const now = new Date(), d = now.getDate(), m = now.getMonth(), y = now.getFullYear();
+  if (d < 10) return { date: new Date(y,m,10), which:'10' };
+  if (d < 20) return { date: new Date(y,m,20), which:'20' };
+  return { date: new Date(y,m+1,10), which:'10' };
+}
+function daysUntil(date) {
+  const now = new Date(); now.setHours(0,0,0,0);
+  return Math.ceil((date - now) / 86400000);
+}
+function formatDate(str) {
+  if (!str) return '—';
+  return new Date(str).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
+}
+
+// ── ICONS ─────────────────────────────────────────────────
+const Icon = ({ name, size=20 }) => {
+  const icons = {
+    dashboard: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
+    checklist: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 12l2 2 4-4"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg>,
+    portfolio: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 19l5-5 4 4 5-6 4 4"/><path d="M3 5h18"/></svg>,
+    history:   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>,
+    settings:  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+  };
+  return icons[name] || null;
+};
+
+// ── SPLASH ────────────────────────────────────────────────
+function Splash() {
+  return (
+    <div className="splash">
+      <div className="splash-title">InvestTrack</div>
+      <div className="splash-sub">Loading your portfolio</div>
+      <div className="spinner"/>
+    </div>
+  );
+}
+
+// ── LOGIN ─────────────────────────────────────────────────
+function LoginScreen() {
+  const [mode, setMode] = useState('login');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [msg, setMsg] = useState('');
+
+  async function handleSubmit() {
+    setLoading(true); setError(''); setMsg('');
+    try {
+      if (mode === 'login') {
+        const { error } = await db.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+      } else {
+        const { error } = await db.auth.signUp({ email, password });
+        if (error) throw error;
+        setMsg('Account created! Check your email to confirm, or sign in if confirmation is disabled.');
+      }
+    } catch(e) {
+      setError(e.message || 'Something went wrong');
+    }
+    setLoading(false);
+  }
+
+  return (
+    <div className="login-wrap">
+      <div style={{marginBottom:40}}>
+        <div style={{fontSize:10,letterSpacing:4,color:'var(--text3)',textTransform:'uppercase',marginBottom:8}}>Personal Finance</div>
+        <div style={{fontFamily:'var(--serif)',fontSize:32,color:'var(--green)',lineHeight:1.1}}>InvestTrack</div>
+        <div style={{fontSize:12,color:'var(--text3)',marginTop:8}}>Your boring, consistent wealth machine.</div>
+      </div>
+
+      <div style={{display:'flex',flexDirection:'column',gap:12}}>
+        <div>
+          <div className="slabel" style={{marginBottom:6}}>Email</div>
+          <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="your@email.com"/>
+        </div>
+        <div>
+          <div className="slabel" style={{marginBottom:6}}>Password</div>
+          <input type="password" value={password} onChange={e=>setPassword(e.target.value)}
+            placeholder="••••••••" onKeyDown={e=>e.key==='Enter'&&handleSubmit()}/>
+        </div>
+
+        {error && <div style={{fontSize:12,color:'var(--red)',padding:'8px 12px',background:'rgba(248,113,113,.1)',borderRadius:8}}>{error}</div>}
+        {msg && <div style={{fontSize:12,color:'var(--green)',padding:'8px 12px',background:'rgba(74,222,128,.1)',borderRadius:8}}>{msg}</div>}
+
+        <button className="btn btn-primary" onClick={handleSubmit} disabled={loading} style={{marginTop:4}}>
+          {loading ? 'Please wait...' : mode === 'login' ? 'Sign In' : 'Create Account'}
+        </button>
+
+        <button className="btn btn-ghost" onClick={()=>{setMode(m=>m==='login'?'signup':'login');setError('');setMsg('')}}>
+          {mode === 'login' ? 'No account? Sign up' : 'Have an account? Sign in'}
+        </button>
+      </div>
+
+      <div style={{marginTop:32,fontSize:10,color:'var(--text3)',lineHeight:1.8}}>
+        <div>First time? Create an account with your email.</div>
+        <div>Tip: Disable email confirmation in Supabase Auth settings for instant access.</div>
+      </div>
+    </div>
+  );
+}
+
+// ── BOTTOM NAV ────────────────────────────────────────────
+function BottomNav({ screen, setScreen }) {
+  const tabs = [
+    { id:'dashboard', label:'Home' },
+    { id:'checklist', label:'Payday' },
+    { id:'portfolio', label:'Portfolio' },
+    { id:'history',   label:'History' },
+    { id:'settings',  label:'Settings' },
+  ];
+  return (
+    <nav className="bnav">
+      {tabs.map(t => (
+        <button key={t.id} className={`bnav-btn${screen===t.id?' active':''}`} onClick={()=>setScreen(t.id)}>
+          <Icon name={t.id}/>
+          {t.label}
+        </button>
+      ))}
+    </nav>
+  );
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────
+function Dashboard({ onNavigate }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const { date: nextDate, which: nextWhich } = getNextPayday();
+  const daysLeft = daysUntil(nextDate);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const [invRes, settingsRes, lastPaydayRes] = await Promise.all([
+          db.from('investments').select('*').eq('is_active', true),
+          db.from('settings').select('*'),
+          db.from('payday_logs').select('*').order('payday_date',{ascending:false}).limit(1),
+        ]);
+        const investments = invRes.data || [];
+        const settings = Object.fromEntries((settingsRes.data||[]).map(s=>[s.key,s.value]));
+        const lastPayday = lastPaydayRes.data?.[0] || null;
+
+        const rate = parseFloat(settings.usd_to_php_rate || '56');
+        const phpInvested = investments.filter(i=>i.currency==='PHP').reduce((s,i)=>s+(i.amount_invested||0),0);
+        const usdInvested = investments.filter(i=>i.currency==='USD').reduce((s,i)=>s+(i.amount_invested||0),0);
+        const phpCurrent = investments.filter(i=>i.currency==='PHP').reduce((s,i)=>s+(i.current_value||i.amount_invested||0),0);
+        const usdCurrent = investments.filter(i=>i.currency==='USD').reduce((s,i)=>s+(i.current_value||i.amount_invested||0),0);
+        const combined = phpCurrent + (usdCurrent * rate);
+        const combinedInvested = phpInvested + (usdInvested * rate);
+        const goal = parseFloat(settings.portfolio_goal_php || '1000000');
+        const peraContrib = parseFloat(settings.pera_annual_contributed || '102000');
+        const peraLimit = parseFloat(settings.pera_annual_limit || '200000');
+
+        setData({ investments, settings, rate, phpCurrent, usdCurrent, combined,
+          combinedInvested, goal, lastPayday, peraContrib, peraLimit });
+      } catch(e) { console.error(e); }
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  if (loading) return <div className="splash"><div className="spinner"/></div>;
+  if (!data) return <div className="empty">Could not load data.</div>;
+
+  const goalPct = Math.min(100, (data.combined / data.goal) * 100);
+  const peraPct = Math.min(100, (data.peraContrib / data.peraLimit) * 100);
+  const gain = data.combined - data.combinedInvested;
+  const gainPct = data.combinedInvested ? ((gain/data.combinedInvested)*100).toFixed(1) : '0.0';
+
+  return (
+    <div className="screen" style={{padding:'0 0 80px'}}>
+      {/* Header */}
+      <div style={{background:'linear-gradient(180deg,var(--surface2) 0%,transparent 100%)',padding:'24px 16px 16px'}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+          <div>
+            <div style={{fontSize:10,letterSpacing:3,color:'var(--text3)',textTransform:'uppercase',marginBottom:4}}>Good day, Engle</div>
+            <div style={{fontFamily:'var(--serif)',fontSize:24,color:'var(--text)'}}>Your Portfolio</div>
+          </div>
+          <div style={{textAlign:'right'}}>
+            <div style={{fontSize:9,color:'var(--text3)',letterSpacing:2,textTransform:'uppercase'}}>{nextWhich}th payday in</div>
+            <div style={{fontSize:28,color:'var(--green)',fontWeight:600,lineHeight:1}}>{daysLeft}<span style={{fontSize:11,color:'var(--text3)'}}> days</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{padding:'0 16px'}}>
+        {/* Main total card */}
+        <div className="card" style={{background:'linear-gradient(135deg,var(--surface2) 0%,var(--surface) 100%)',marginBottom:10}}>
+          <div className="slabel">Total Portfolio Value</div>
+          <div style={{fontFamily:'var(--serif)',fontSize:36,color:'var(--green)',margin:'8px 0 4px'}}>{fp(data.combined)}</div>
+          <div style={{display:'flex',gap:16,fontSize:11,color:'var(--text2)'}}>
+            <span>PHP {fp(data.phpCurrent)}</span>
+            <span>+</span>
+            <span>USD {fd(data.usdCurrent)} × {data.rate}</span>
+          </div>
+          <div style={{marginTop:8,fontSize:12}}>
+            <span style={{color: gain>=0 ? 'var(--green)':'var(--red)'}}>
+              {gain>=0?'▲':'▼'} {fp(Math.abs(gain))} ({gainPct}%)
+            </span>
+            <span style={{color:'var(--text3)',fontSize:11,marginLeft:8}}>vs invested {fp(data.combinedInvested)}</span>
+          </div>
+        </div>
+
+        {/* Stats row */}
+        <div className="stat-row">
+          <div className="stat-card">
+            <div className="stat-label">PERA Annual</div>
+            <div className="stat-value" style={{fontSize:16,color:'var(--pink)'}}>{fp(data.peraContrib)}</div>
+            <div className="stat-sub">{fp(data.peraLimit - data.peraContrib)} room left</div>
+            <div className="pbar" style={{marginTop:8}}>
+              <div className="pbar-fill" style={{width:`${peraPct}%`,background:'var(--pink)'}}/>
+            </div>
+            <div style={{fontSize:10,color:'var(--text3)',marginTop:4}}>Tax credit: {fp(data.peraContrib*0.05)}/yr 🎁</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">₱1M Goal</div>
+            <div className="stat-value" style={{fontSize:16,color:'var(--green)'}}>{goalPct.toFixed(1)}%</div>
+            <div className="stat-sub">{fp(data.goal - data.combined)} to go</div>
+            <div className="pbar" style={{marginTop:8}}>
+              <div className="pbar-fill" style={{width:`${goalPct}%`,background:'var(--green)'}}/>
+            </div>
+            <div style={{fontSize:10,color:'var(--text3)',marginTop:4}}>{data.investments.length} investments</div>
+          </div>
+        </div>
+
+        {/* Last payday */}
+        <div className="card" style={{marginBottom:10}}>
+          <div className="slabel">Last Completed Payday</div>
+          {data.lastPayday ? (
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:8}}>
+              <div>
+                <div style={{fontSize:14,color:'var(--text)'}}>{data.lastPayday.payday_type} Payday</div>
+                <div style={{fontSize:11,color:'var(--text3)',marginTop:2}}>{formatDate(data.lastPayday.payday_date)}</div>
+              </div>
+              <div style={{textAlign:'right'}}>
+                <div style={{fontSize:16,color:'var(--green)',fontWeight:600}}>{fp(data.lastPayday.total_invested)}</div>
+                <div style={{fontSize:10,color:'var(--text3)'}}>invested</div>
+              </div>
+            </div>
+          ) : (
+            <div style={{color:'var(--text3)',fontSize:13,marginTop:8}}>
+              No paydays logged yet. Complete your first checklist! 💪
+            </div>
+          )}
+        </div>
+
+        {/* Quick action */}
+        <button className="btn btn-primary" onClick={()=>onNavigate('checklist')} style={{marginTop:4}}>
+          Open Payday Checklist →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── CHECKLIST ─────────────────────────────────────────────
+function Checklist() {
+  const { which: nextWhich } = getNextPayday();
+  const [tab, setTab] = useState(nextWhich);
+  const [step1, setStep1] = useState(false);
+  const [step2, setStep2] = useState(false);
+  const [checked, setChecked] = useState({});
+  const [logging, setLogging] = useState(false);
+  const [done, setDone] = useState(false);
+  const [loggedPaydays, setLoggedPaydays] = useState({ '10': false, '20': false });
+
+  const transfers = tab === '10' ? PAYDAY_10 : PAYDAY_20;
+  const total = transfers.reduce((s,t)=>s+(t.amount||0),0);
+  const checkedTotal = transfers.filter(t=>checked[t.id]).reduce((s,t)=>s+(t.amount||0),0);
+  const checkedCount = Object.values(checked).filter(Boolean).length;
+  const allDone = step1 && step2 && checkedCount === transfers.length;
+  const progress = Math.round(((checkedCount+(step1?.5:0)+(step2?.5:0))/(transfers.length+1))*100);
+
+  function switchTab(t) {
+    setTab(t); setStep1(false); setStep2(false); setChecked({}); setDone(false);
+  }
+
+  async function logPayday() {
+    if (!allDone || logging) return;
+    setLogging(true);
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const { data: log, error } = await db.from('payday_logs').insert({
+        payday_date: today,
+        payday_type: tab === '10' ? '10th' : '20th',
+        total_invested: total,
+        notes: `Completed via app · ${checkedCount} transfers`
+      }).select().single();
+
+      if (error) throw error;
+
+      // Log individual transactions
+      const txns = transfers.map(t => ({
+        payday_log_id: log.id,
+        transaction_type: 'deposit',
+        transaction_date: today,
+        amount_php: t.amount,
+        notes: t.label
+      }));
+      await db.from('transactions').insert(txns);
+
+      setDone(true);
+      setLoggedPaydays(p => ({...p, [tab]: true}));
+    } catch(e) {
+      alert('Error logging payday: ' + (e.message || 'Unknown error'));
+    }
+    setLogging(false);
+  }
+
+  function reset() {
+    setStep1(false); setStep2(false); setChecked({}); setDone(false);
+  }
+
+  const groupedByCategory = useMemo(() => {
+    const groups = {};
+    transfers.forEach(t => {
+      if (!groups[t.cat]) groups[t.cat] = [];
+      groups[t.cat].push(t);
+    });
+    return groups;
+  }, [transfers]);
+
+  return (
+    <div className="screen">
+      {/* Header */}
+      <div style={{background:'linear-gradient(180deg,var(--surface2),transparent)',padding:'20px 16px 0',position:'sticky',top:0,zIndex:10,backdropFilter:'blur(10px)'}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
+          <div style={{fontFamily:'var(--serif)',fontSize:20,color:'var(--text)'}}>Payday Checklist</div>
+          <div style={{textAlign:'right'}}>
+            <div style={{fontSize:9,color:'var(--text3)',letterSpacing:2,textTransform:'uppercase'}}>Progress</div>
+            <div style={{fontSize:16,color:'var(--green)',fontWeight:600}}>{progress}%</div>
+          </div>
+        </div>
+        <div style={{padding:'0 0 0'}}>
+          <div style={{display:'flex',justifyContent:'space-between',fontSize:11,color:'var(--text3)',marginBottom:5}}>
+            <span>{checkedCount}/{transfers.length} transfers · {fp(checkedTotal)} moved</span>
+          </div>
+          <div className="pbar">
+            <div className="pbar-fill" style={{width:`${progress}%`,background:'linear-gradient(90deg,var(--green),var(--green2))'}}/>
+          </div>
+        </div>
+        <div className="tabs" style={{marginTop:12}}>
+          {['10','20'].map(t => (
+            <button key={t} className={`tab${tab===t?' active':''}`} onClick={()=>switchTab(t)}>
+              {t}th Payday
+              {loggedPaydays[t] && <span style={{marginLeft:6,fontSize:10,color:'var(--green)'}}>✓</span>}
+              {t===nextWhich && !loggedPaydays[t] && <span style={{marginLeft:6,width:5,height:5,borderRadius:'50%',background:'var(--orange)',display:'inline-block'}}/>}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{padding:'16px 16px 80px'}}>
+        {/* Budget */}
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',
+          background:'var(--surface)',border:'1px solid var(--border)',borderRadius:10,
+          padding:'10px 14px',marginBottom:16}}>
+          <span style={{fontSize:12,color:'var(--text3)'}}>Budget ({tab}th)</span>
+          <span style={{fontSize:15,fontWeight:600}}>₱10,000</span>
+          <span style={{fontSize:12,color:'var(--green)'}}>✓ Fully allocated</span>
+        </div>
+
+        {/* Done banner */}
+        {done ? (
+          <div style={{background:'linear-gradient(135deg,#14532d,#166534)',border:'1px solid var(--green)',
+            borderRadius:12,padding:'16px',textAlign:'center',marginBottom:16}}>
+            <div style={{fontSize:24,marginBottom:4}}>🎉</div>
+            <div style={{color:'var(--green)',fontWeight:700,fontSize:15}}>Payday {tab}th logged!</div>
+            <div style={{color:'#86efac',fontSize:12,marginTop:4}}>Moved {fp(total)} · Logged to database · Galing mo!</div>
+            <button onClick={reset} style={{marginTop:10,background:'var(--green)',color:'#052e16',
+              border:'none',borderRadius:20,padding:'6px 18px',fontSize:12,fontWeight:700,cursor:'pointer',
+              fontFamily:'var(--mono)'}}>Reset for Next {tab}th</button>
+          </div>
+        ) : allDone && (
+          <div style={{background:'rgba(74,222,128,.1)',border:'1px solid var(--green)',
+            borderRadius:12,padding:'14px',textAlign:'center',marginBottom:16}}>
+            <div style={{color:'var(--green)',fontSize:14,fontWeight:600,marginBottom:8}}>All transfers done! 🎉</div>
+            <button onClick={logPayday} disabled={logging} style={{background:'var(--green)',color:'#052e16',
+              border:'none',borderRadius:8,padding:'10px 24px',fontSize:13,fontWeight:700,cursor:'pointer',
+              fontFamily:'var(--mono)'}}>
+              {logging ? 'Logging...' : '✓ Log This Payday to Database'}
+            </button>
+          </div>
+        )}
+
+        {/* Step 1 */}
+        <div className="slabel" style={{marginBottom:8}}>Step 1 — Fund GoTyme</div>
+        <StepCard label="LBP → GoTyme" sub="Transfer salary · −₱15 fee" checked={step1} onToggle={()=>setStep1(p=>!p)} icon="🏦"/>
+        <StepCard label="GoTyme ready to distribute" sub="Confirm balance received" checked={step2} onToggle={()=>setStep2(p=>!p)} icon="✅"/>
+
+        {/* Step 2 */}
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginTop:20,marginBottom:8}}>
+          <div className="slabel">Step 2 — Distribute</div>
+          <span style={{fontSize:11,color:'var(--green)'}}>{fp(checkedTotal)} / {fp(total)}</span>
+        </div>
+
+        {Object.entries(groupedByCategory).map(([cat, items]) => (
+          <div key={cat}>
+            <div style={{fontSize:9,letterSpacing:2,color:CAT_COLOR[cat]||'#666',textTransform:'uppercase',
+              marginBottom:6,marginTop:14}}>{CAT_LABEL[cat]||cat}</div>
+            {items.map(t => (
+              <CheckItem key={t.id} item={t} checked={!!checked[t.id]}
+                onToggle={()=>setChecked(p=>({...p,[t.id]:!p[t.id]}))}
+                color={CAT_COLOR[t.cat]}/>
+            ))}
+          </div>
+        ))}
+
+        {/* Summary */}
+        <div className="card" style={{marginTop:20}}>
+          <div className="slabel" style={{marginBottom:10}}>Summary</div>
+          {Object.entries(CAT_LABEL).map(([cat]) => {
+            const catTotal = transfers.filter(t=>t.cat===cat).reduce((s,t)=>s+t.amount,0);
+            if (!catTotal) return null;
+            return (
+              <div key={cat} style={{display:'flex',justifyContent:'space-between',marginBottom:7,fontSize:13}}>
+                <span style={{display:'flex',alignItems:'center',gap:8}}>
+                  <span style={{width:7,height:7,borderRadius:'50%',background:CAT_COLOR[cat],display:'inline-block'}}/>
+                  <span style={{color:'var(--text2)'}}>{CAT_LABEL[cat]}</span>
+                </span>
+                <span>{fp(catTotal)}</span>
+              </div>
+            );
+          })}
+          <div style={{borderTop:'1px solid var(--border)',marginTop:8,paddingTop:8,
+            display:'flex',justifyContent:'space-between',fontWeight:600}}>
+            <span>Total</span>
+            <span style={{color:'var(--green)'}}>{fp(total)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StepCard({ label, sub, checked, onToggle, icon }) {
+  return (
+    <div className={`step-card${checked?' done':''}`} onClick={onToggle}>
+      <div className={`step-icon${checked?' done':''}`}>{checked?'✓':icon}</div>
+      <div>
+        <div style={{fontSize:13,color:checked?'#86efac':'var(--text)',textDecoration:checked?'line-through':'none'}}>{label}</div>
+        <div style={{fontSize:11,color:'var(--text3)',marginTop:1}}>{sub}</div>
+      </div>
+    </div>
+  );
+}
+
+function CheckItem({ item, checked, onToggle, color }) {
+  return (
+    <div className={`check-item${checked?' done':''}`} onClick={onToggle}>
+      <div className={`check-box${checked?' checked':''}`} style={checked?{borderColor:color,background:color}:{borderColor:'var(--border2)'}}>
+        {checked && <span style={{color:'#0a1a0a',fontSize:12,fontWeight:700}}>✓</span>}
+      </div>
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{fontSize:13,color:checked?'var(--text3)':'var(--text)',
+          textDecoration:checked?'line-through':'none',fontWeight:500}}>{item.label}</div>
+        {item.note && <div style={{fontSize:10,color:'var(--text3)',marginTop:2}}>{item.note}</div>}
+      </div>
+      <div style={{fontSize:13,fontWeight:600,color:checked?'var(--text3)':color,flexShrink:0}}>
+        {fp(item.amount)}
+      </div>
+    </div>
+  );
+}
+
+// ── PORTFOLIO ─────────────────────────────────────────────
+function Portfolio() {
+  const [investments, setInvestments] = useState([]);
+  const [rate, setRate] = useState(56);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('all');
+
+  useEffect(() => {
+    async function load() {
+      const [invRes, settingsRes] = await Promise.all([
+        db.from('investments').select('*, accounts(name)').eq('is_active',true).order('category'),
+        db.from('settings').select('*'),
+      ]);
+      setInvestments(invRes.data || []);
+      const settings = Object.fromEntries((settingsRes.data||[]).map(s=>[s.key,s.value]));
+      setRate(parseFloat(settings.usd_to_php_rate || '56'));
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  const cats = useMemo(() => [...new Set(investments.map(i=>i.category))], [investments]);
+  const filtered = filter === 'all' ? investments : investments.filter(i=>i.category===filter);
+
+  const phpTotal = investments.filter(i=>i.currency==='PHP').reduce((s,i)=>s+(i.current_value||i.amount_invested||0),0);
+  const usdTotal = investments.filter(i=>i.currency==='USD').reduce((s,i)=>s+(i.current_value||i.amount_invested||0),0);
+  const phpInv = investments.filter(i=>i.currency==='PHP').reduce((s,i)=>s+(i.amount_invested||0),0);
+  const usdInv = investments.filter(i=>i.currency==='USD').reduce((s,i)=>s+(i.amount_invested||0),0);
+
+  if (loading) return <div className="splash"><div className="spinner"/></div>;
+
+  // Group by category
+  const grouped = {};
+  filtered.forEach(inv => {
+    const k = inv.category;
+    if (!grouped[k]) grouped[k] = [];
+    grouped[k].push(inv);
+  });
+
+  return (
+    <div className="screen">
+      <div style={{padding:'20px 16px 12px',background:'linear-gradient(180deg,var(--surface2),transparent)'}}>
+        <div style={{fontFamily:'var(--serif)',fontSize:22,marginBottom:12}}>Portfolio</div>
+        <div style={{display:'flex',gap:8,marginBottom:4,overflowX:'auto',paddingBottom:4}}>
+          <FilterChip label="All" active={filter==='all'} onClick={()=>setFilter('all')}/>
+          {cats.map(c => <FilterChip key={c} label={CAT_LABEL[c]||c} active={filter===c} onClick={()=>setFilter(c)}/>)}
+        </div>
+      </div>
+
+      <div style={{padding:'0 16px 80px'}}>
+        {/* Totals */}
+        <div className="card" style={{marginBottom:16}}>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8}}>
+            <div>
+              <div className="slabel">PHP</div>
+              <div style={{fontSize:15,fontWeight:600,color:'var(--green)',marginTop:4}}>{fp(phpTotal)}</div>
+              <div style={{fontSize:10,color:phpTotal>=phpInv?'var(--green)':'var(--red)',marginTop:2}}>
+                {phpTotal>=phpInv?'▲':'▼'}{Math.abs(((phpTotal-phpInv)/phpInv*100)||0).toFixed(1)}%
+              </div>
+            </div>
+            <div>
+              <div className="slabel">USD</div>
+              <div style={{fontSize:15,fontWeight:600,color:'var(--orange)',marginTop:4}}>{fd(usdTotal)}</div>
+              <div style={{fontSize:10,color:usdTotal>=usdInv?'var(--green)':'var(--red)',marginTop:2}}>
+                {usdTotal>=usdInv?'▲':'▼'}{Math.abs(((usdTotal-usdInv)/(usdInv||1)*100)||0).toFixed(1)}%
+              </div>
+            </div>
+            <div>
+              <div className="slabel">Combined</div>
+              <div style={{fontSize:15,fontWeight:600,color:'var(--text)',marginTop:4}}>{fp(phpTotal + usdTotal*rate)}</div>
+              <div style={{fontSize:10,color:'var(--text3)',marginTop:2}}>@ ₱{rate}/USD</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Investments grouped by category */}
+        {Object.entries(grouped).map(([cat, items]) => {
+          const catColor = CAT_COLOR[cat] || '#666';
+          const catTotal = items.reduce((s,i)=>s+(i.current_value||i.amount_invested||0),0);
+          return (
+            <div key={cat} style={{marginBottom:20}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+                <div style={{fontSize:9,letterSpacing:2,color:catColor,textTransform:'uppercase'}}>{CAT_LABEL[cat]||cat}</div>
+                <div style={{fontSize:11,color:'var(--text2)'}}>{items[0].currency==='PHP'?fp(catTotal):fd(catTotal)}</div>
+              </div>
+              {items.map(inv => <InvRow key={inv.id} inv={inv} rate={rate}/>)}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function FilterChip({ label, active, onClick }) {
+  return (
+    <button onClick={onClick} style={{
+      background: active ? 'var(--green)' : 'var(--surface)',
+      color: active ? '#052e16' : 'var(--text2)',
+      border: `1px solid ${active ? 'var(--green)' : 'var(--border)'}`,
+      borderRadius: 20, padding: '4px 12px', fontSize: 10, fontFamily: 'var(--mono)',
+      cursor: 'pointer', whiteSpace: 'nowrap', letterSpacing: 1, textTransform: 'uppercase',
+      transition: 'all .2s', fontWeight: active ? 600 : 400
+    }}>{label}</button>
+  );
+}
+
+function InvRow({ inv, rate }) {
+  const cv = inv.current_value || inv.amount_invested || 0;
+  const ai = inv.amount_invested || 0;
+  const gain = cv - ai;
+  const gainPct = ai ? ((gain/ai)*100).toFixed(1) : '0.0';
+  const isGain = gain >= 0;
+  const color = CAT_COLOR[inv.category] || '#666';
+  const isPHP = inv.currency === 'PHP';
+
+  return (
+    <div className="inv-row">
+      <div className="inv-dot" style={{background:color}}/>
+      <div className="inv-info">
+        <div className="inv-name">{inv.name}</div>
+        <div className="inv-sub">
+          {inv.ticker && <span style={{color:color,marginRight:6}}>{inv.ticker}</span>}
+          <span>{inv.accounts?.name || '—'}</span>
+          {inv.is_pera && <span style={{color:'var(--pink)',marginLeft:6}}>PERA</span>}
+        </div>
+        {inv.units > 0 && (
+          <div style={{fontSize:10,color:'var(--text3)',marginTop:1}}>
+            {inv.units} units @ {isPHP?'₱':'$'}{Number(inv.average_price||0).toFixed(2)}
+          </div>
+        )}
+      </div>
+      <div className="inv-amt">
+        <div className="inv-value" style={{color}}>{isPHP ? fp(cv) : fd(cv)}</div>
+        <div className={`inv-gain ${isGain?'gain':'loss'}`}>
+          {isGain?'▲':'▼'} {Math.abs(gainPct)}%
+        </div>
+        {inv.hold_until && (
+          <div style={{fontSize:9,color:'var(--text3)',marginTop:2}}>→{new Date(inv.hold_until).getFullYear()}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── HISTORY ───────────────────────────────────────────────
+function HistoryScreen() {
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState(null);
+  const [txns, setTxns] = useState({});
+
+  useEffect(() => {
+    async function load() {
+      const { data } = await db.from('payday_logs').select('*').order('payday_date',{ascending:false});
+      setLogs(data || []);
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  async function loadTxns(logId) {
+    if (txns[logId]) { setExpanded(expanded===logId?null:logId); return; }
+    const { data } = await db.from('transactions').select('*').eq('payday_log_id', logId).order('created_at');
+    setTxns(p => ({...p, [logId]: data || []}));
+    setExpanded(logId);
+  }
+
+  const totalInvested = logs.reduce((s,l)=>s+(l.total_invested||0),0);
+  const completedCount = logs.length;
+
+  if (loading) return <div className="splash"><div className="spinner"/></div>;
+
+  return (
+    <div className="screen">
+      <div style={{padding:'20px 16px 12px',background:'linear-gradient(180deg,var(--surface2),transparent)'}}>
+        <div style={{fontFamily:'var(--serif)',fontSize:22}}>History</div>
+        <div style={{fontSize:11,color:'var(--text3)',marginTop:4}}>
+          {completedCount} paydays completed · {fp(totalInvested)} total invested
+        </div>
+      </div>
+
+      <div style={{padding:'0 16px 80px'}}>
+        {logs.length === 0 ? (
+          <div className="empty" style={{marginTop:40}}>
+            <div style={{fontSize:32,marginBottom:12}}>📋</div>
+            <div>No paydays logged yet.</div>
+            <div style={{marginTop:8,fontSize:12}}>Complete your first checklist to start tracking!</div>
+          </div>
+        ) : logs.map(log => (
+          <div key={log.id} className="hist-item" onClick={()=>loadTxns(log.id)} style={{cursor:'pointer'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+              <div>
+                <div style={{fontSize:13,fontWeight:600}}>{log.payday_type} Payday</div>
+                <div style={{fontSize:11,color:'var(--text3)',marginTop:2}}>{formatDate(log.payday_date)}</div>
+                {log.notes && <div style={{fontSize:10,color:'var(--text3)',marginTop:2}}>{log.notes}</div>}
+              </div>
+              <div style={{textAlign:'right'}}>
+                <div style={{fontSize:16,fontWeight:600,color:'var(--green)'}}>{fp(log.total_invested)}</div>
+                <div style={{fontSize:10,color:'var(--text3)',marginTop:2}}>{expanded===log.id?'▲ hide':'▼ details'}</div>
+              </div>
+            </div>
+
+            {expanded === log.id && txns[log.id] && (
+              <div style={{marginTop:12,borderTop:'1px solid var(--border)',paddingTop:12}}>
+                {txns[log.id].map(t => (
+                  <div key={t.id} style={{display:'flex',justifyContent:'space-between',fontSize:12,
+                    color:'var(--text2)',marginBottom:6}}>
+                    <span>{t.notes || t.transaction_type}</span>
+                    <span style={{color:'var(--green)'}}>{t.amount_php ? fp(t.amount_php) : fd(t.amount_usd)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── SETTINGS ──────────────────────────────────────────────
+function SettingsScreen() {
+  const [settings, setSettings] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(null);
+  const [editVal, setEditVal] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    async function load() {
+      const { data } = await db.from('settings').select('*');
+      setSettings(Object.fromEntries((data||[]).map(s=>[s.key,s.value])));
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  async function saveSetting(key) {
+    setSaving(true);
+    await db.from('settings').update({ value: editVal, updated_at: new Date().toISOString() }).eq('key', key);
+    setSettings(p => ({...p, [key]: editVal}));
+    setEditing(null);
+    setSaving(false);
+  }
+
+  async function signOut() {
+    await db.auth.signOut();
+  }
+
+  if (loading) return <div className="splash"><div className="spinner"/></div>;
+
+  const editableSettings = [
+    { key:'usd_to_php_rate', label:'USD → PHP Rate', note:'Update when you do IBKR transfers', prefix:'₱', suffix:'/USD' },
+    { key:'portfolio_goal_php', label:'Portfolio Goal (PHP)', note:'Your ₱1M target', prefix:'₱' },
+    { key:'pera_annual_contributed', label:'PERA Annual Contributions', note:'Current year total', prefix:'₱' },
+    { key:'payday_budget_10th', label:'10th Payday Budget', note:'', prefix:'₱' },
+    { key:'payday_budget_20th', label:'20th Payday Budget', note:'', prefix:'₱' },
+  ];
+
+  return (
+    <div className="screen">
+      <div style={{padding:'20px 16px 12px',background:'linear-gradient(180deg,var(--surface2),transparent)'}}>
+        <div style={{fontFamily:'var(--serif)',fontSize:22}}>Settings</div>
+        <div style={{fontSize:11,color:'var(--text3)',marginTop:4}}>Tap any value to edit</div>
+      </div>
+
+      <div style={{padding:'0 16px 80px'}}>
+        <div className="slabel" style={{marginBottom:8}}>Preferences</div>
+        {editableSettings.map(s => (
+          <div key={s.key}>
+            {editing === s.key ? (
+              <div className="card" style={{marginBottom:7}}>
+                <div style={{fontSize:12,color:'var(--text2)',marginBottom:8}}>{s.label}</div>
+                <input type="number" value={editVal} onChange={e=>setEditVal(e.target.value)} autoFocus
+                  style={{marginBottom:8}}/>
+                <div style={{display:'flex',gap:8}}>
+                  <button className="btn btn-primary" onClick={()=>saveSetting(s.key)} disabled={saving}
+                    style={{flex:1}}>{saving?'Saving...':'Save'}</button>
+                  <button className="btn btn-ghost" onClick={()=>setEditing(null)} style={{flex:1}}>Cancel</button>
+                </div>
+              </div>
+            ) : (
+              <div className="srow" onClick={()=>{setEditing(s.key);setEditVal(settings[s.key]||'')}} style={{cursor:'pointer',marginBottom:7}}>
+                <div>
+                  <div className="srow-label">{s.label}</div>
+                  {s.note && <div style={{fontSize:10,color:'var(--text3)',marginTop:2}}>{s.note}</div>}
+                </div>
+                <div className="srow-value">{s.prefix||''}{Number(settings[s.key]||0).toLocaleString()}{s.suffix||''}</div>
+              </div>
+            )}
+          </div>
+        ))}
+
+        <div className="slabel" style={{marginTop:20,marginBottom:8}}>Information</div>
+        <div className="card" style={{marginBottom:7}}>
+          <div style={{display:'flex',justifyContent:'space-between',fontSize:12}}>
+            <span style={{color:'var(--text3)'}}>PERA Tax Credit (5%)</span>
+            <span style={{color:'var(--pink)'}}>{fp(parseFloat(settings.pera_annual_contributed||0)*0.05)}/year 🎁</span>
+          </div>
+        </div>
+        <div className="card" style={{marginBottom:7}}>
+          <div style={{display:'flex',justifyContent:'space-between',fontSize:12}}>
+            <span style={{color:'var(--text3)'}}>PERA Room Left</span>
+            <span style={{color:'var(--text2)'}}>{fp(200000-parseFloat(settings.pera_annual_contributed||0))}</span>
+          </div>
+        </div>
+
+        <div className="slabel" style={{marginTop:20,marginBottom:8}}>Account</div>
+        <button className="btn btn-ghost" onClick={signOut} style={{marginBottom:8}}>
+          Sign Out
+        </button>
+
+        <div style={{marginTop:24,fontSize:10,color:'var(--text3)',textAlign:'center',lineHeight:2}}>
+          <div>InvestTrack · Personal Finance · Built for ENGLE</div>
+          <div>Supabase · GitHub Pages · Boring Strategy</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── MAIN APP ──────────────────────────────────────────────
+function MainApp({ session }) {
+  const [screen, setScreen] = useState('dashboard');
+
+  return (
+    <div className="app">
+      <div className="screen" style={{flex:1,paddingBottom:0}}>
+        {screen==='dashboard' && <Dashboard onNavigate={setScreen}/>}
+        {screen==='checklist' && <Checklist/>}
+        {screen==='portfolio' && <Portfolio/>}
+        {screen==='history'   && <HistoryScreen/>}
+        {screen==='settings'  && <SettingsScreen/>}
+      </div>
+      <BottomNav screen={screen} setScreen={setScreen}/>
+    </div>
+  );
+}
+
+// ── ROOT ──────────────────────────────────────────────────
+function App() {
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    db.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+    });
+    const { data: { subscription } } = db.auth.onAuthStateChange((_e, session) => {
+      setSession(session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (loading) return <Splash/>;
+  if (!session) return <LoginScreen/>;
+  return <MainApp session={session}/>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
