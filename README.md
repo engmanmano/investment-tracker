@@ -249,13 +249,44 @@ Set a **recurring alarm** on your phone:
 - [ ] `pera_annual_contributed` in settings is manually set — does not auto-calculate from actual transactions
 - [ ] Auth redirect URL points to localhost on email confirmation click — fix by setting Site URL in Supabase → Authentication → URL Configuration to `https://engmanmano.github.io/investment-tracker`
 
-- [ ] MBT (COL) → consolidate to DragonFi PERA when price approaches ₱69.50 avg (currently at loss — actually no CGT if sold now, consider it)
+- [ ] MBT (COL) → 10 shares remaining to keep account active · ₱4,000 buying power reserved as black swan fund
 - [ ] Check UnionBank group life insurance coverage amount
+- [ ] COOP: visit branch Friday — clarify what % of TD goes to shared capital, is 12% fixed or declared, lock-in period?
 - [ ] COOP: build toward ₱50K threshold for Time Deposit
 - [ ] OKX/MEXC: consolidate micro crypto positions eventually
-- [ ] IBKR: monitor PH regulatory situation — consider alternatives if access worsens
-- [ ] PERA: ₱98,000 room left annually — consider increasing contributions
+- [ ] IBKR: monitor PH regulatory situation — consider Saxo Bank or EastWest S&P 500 as fallbacks
+- [ ] PERA: ₱98,000 annual room left — increase contributions as salary grows
 - [ ] Update `current_value` for all investments monthly (manually in Supabase or via Settings)
+- [ ] Claim PERA 5% tax credit — get annual certificate from DragonFi, submit to HR for BIR Form 2316
+- [ ] Fix auth redirect URL: Supabase → Auth → URL Configuration → set Site URL to `https://engmanmano.github.io/investment-tracker`
+
+---
+
+## 👀 Watchlist (not buying yet)
+
+### ICT — International Container Terminal Services
+- **Why interesting:** One of the highest quality companies on PSE · global port operator in 20 countries · 34 terminals · 61.82% EBITDA margin · consistently beats earnings estimates · low volatility · wide economic moat · global revenue diversification
+- **Why waiting:** ₱7,530 minimum per board lot (10 shares × ₱753) · still building existing PERA positions first · low dividend (2.37%) means mostly price appreciation play
+- **Black swan trigger:** ₱650–680 on market-wide correction
+- **Where to buy:** DragonFi PERA — maximize tax-free compounding on a quality compounder
+- **Timeline:** Revisit in 6–12 months
+
+---
+
+## 🦢 Black Swan Triggers
+> Deploy COL buying power (₱4,000) on significant market dip
+> Split rule: buy half on first big drop · hold half for potential second dip
+> For VWRA: deploy quarterly transfer early instead of waiting
+
+| Stock | Current Price | Trigger Price | Platform | Notes |
+|---|---|---|---|---|
+| OGP | ₱33.65 | ₱28.00 | DragonFi PERA | Mining — buy the panic |
+| SGP | ₱24.70 | ₱20.00 | DragonFi PERA | Energy — essential infrastructure |
+| DMC | ₱9.49 | ₱8.00 | DragonFi PERA | Conglomerate |
+| MBT | ₱65.85 | ₱55.00 | DragonFi PERA | Banking — always recovers |
+| JFC | ₱163.10 | ₱135.00 | DragonFi PERA | Consumer staples |
+| VWRA | ~$130 | $110.00 | IBKR | Deploy quarterly transfer early |
+| ICT | ₱753.00 | ₱650–680 | DragonFi PERA | Watchlist — add when triggered |
 
 ---
 
