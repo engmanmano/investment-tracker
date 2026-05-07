@@ -186,21 +186,19 @@ const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── PAYDAY PLANS ─────────────────────────────────────────
 const PAYDAY_10 = [
-  { id:'p10_mp2',   label:'MP2',                         cat:'gov',    amount:2000, note:'Pag-IBIG MP2 · tax-free ~7%' },
-  { id:'p10_vwra',  label:'VWRA (stage in GoTyme)',       cat:'intl',   amount:3000, note:'GoTyme → WISE → IBKR quarterly' },
-  { id:'p10_mbt',   label:'MBT (DragonFi PERA)',          cat:'pera',   amount:1000, note:'PERA · avg ₱67.50' },
-  { id:'p10_coop',  label:'COOP Providers (Maya Goal)',   cat:'coop',   amount:1000, note:'Stage in Maya · toward ₱50K TD' },
-  { id:'p10_reits', label:'Manulife Asia Pacific REITs',  cat:'reits',  amount:1000, note:'GCash GFunds' },
-  { id:'p10_bpi',   label:'BPI PERA MMF',                 cat:'pera',   amount:1000, note:'DragonFi PERA · minimum ₱1,000' },
-  { id:'p10_buf',   label:'Buffer',                       cat:'buffer', amount:1000, note:'Stay in GoTyme · deploy only when clear opportunity exists' },
+  { id:'p10_mp2',   label:'MP2',                           cat:'gov',    amount:2000, note:'Pag-IBIG MP2 · tax-free ~7%' },
+  { id:'p10_vwra',  label:'VWRA (stage in GoTyme)',        cat:'intl',   amount:4000, note:'Full monthly VWRA allocation · GoTyme → WISE → IBKR quarterly' },
+  { id:'p10_mbt',   label:'MBT (DragonFi PERA)',           cat:'pera',   amount:1000, note:'PERA · avg ₱67.50' },
+  { id:'p10_coop',  label:'COOP Providers (Maya Goal)',    cat:'coop',   amount:1000, note:'Stage in Maya · accumulate toward ₱50K TD' },
+  { id:'p10_reits', label:'Manulife Asia Pacific REITs',   cat:'reits',  amount:1000, note:'GCash GFunds' },
+  { id:'p10_bpi',   label:'BPI PERA MMF',                  cat:'pera',   amount:1000, note:'DragonFi PERA · minimum ₱1,000' },
 ];
 const PAYDAY_20 = [
-  { id:'p20_mp2',  label:'MP2',                      cat:'gov',    amount:1000, note:'Pag-IBIG MP2' },
-  { id:'p20_ogp',  label:'OGP (DragonFi PERA)',       cat:'pera',   amount:3500, note:'1 board lot ~₱3,400 · hold until 2036' },
-  { id:'p20_sgp',  label:'SGP (DragonFi PERA)',       cat:'pera',   amount:2500, note:'1 board lot ~₱2,200 · hold until 2033' },
-  { id:'p20_dmc',  label:'DMC (DragonFi PERA)',       cat:'pera',   amount:1000, note:'1 board lot ~₱1,000' },
-  { id:'p20_gtf',  label:'Global Tech Feeder Fund',   cat:'funds',  amount:1000, note:'GCash GFunds · ATRAM' },
-  { id:'p20_cry',  label:'Crypto (5 × ₱200)',         cat:'crypto', amount:1000, note:'Bitget · quantum-resistant thesis' },
+  { id:'p20_mp2',  label:'MP2',                              cat:'gov',    amount:1000, note:'Pag-IBIG MP2' },
+  { id:'p20_ogp',  label:'OGP (DragonFi PERA)',              cat:'pera',   amount:3500, note:'1 board lot ~₱3,400 · hold until 2036' },
+  { id:'p20_sgp',  label:'SGP (DragonFi PERA)',              cat:'pera',   amount:2500, note:'1 board lot ~₱2,200 · hold until 2033' },
+  { id:'p20_ict',  label:'ICT accumulation (DragonFi PERA)', cat:'pera',   amount:2000, note:'Cash to PERA · buy ICT board lot when balance ≥ ₱7,530' },
+  { id:'p20_cry',  label:'Crypto (5 × ₱200)',                cat:'crypto', amount:1000, note:'Bitget · quantum-resistant thesis' },
 ];
 
 const CAT_COLOR = {

@@ -76,12 +76,11 @@ investment-tracker/
 | Investment | Amount | Platform | Notes |
 |---|---|---|---|
 | MP2 | ₱2,000 | Pag-IBIG | Tax-free ~7% |
-| VWRA (stage in GoTyme) | ₱3,000 | GoTyme → WISE → IBKR | Deploy quarterly to minimize fees |
+| VWRA (stage in GoTyme) | ₱4,000 | GoTyme → WISE → IBKR | Full monthly VWRA allocation · deploy quarterly |
 | MBT | ₱1,000 | DragonFi PERA | Avg ₱67.50 |
 | COOP (Providers) | ₱1,000 | Maya Personal Goal | Accumulate toward ₱50K TD |
 | Manulife Asia Pacific REITs | ₱1,000 | GCash GFunds | |
-| BPI PERA MMF | ₱500 | DragonFi PERA | |
-| Buffer | ₱1,500 | GoTyme | Deploy only when clear opportunity exists |
+| BPI PERA MMF | ₱1,000 | DragonFi PERA | Minimum ₱1,000 met |
 
 ### 20th Payday — ₱10,000
 
@@ -90,9 +89,12 @@ investment-tracker/
 | MP2 | ₱1,000 | Pag-IBIG | |
 | OGP | ₱3,500 | DragonFi PERA | 1 board lot ~₱3,400 · hold until 2036 |
 | SGP | ₱2,500 | DragonFi PERA | 1 board lot ~₱2,200 · hold until 2033 |
-| DMC | ₱1,000 | DragonFi PERA | 1 board lot ~₱1,000 |
-| Global Tech Feeder Fund | ₱1,000 | GCash GFunds | ATRAM |
+| ICT accumulation | ₱2,000 | DragonFi PERA | Buy ICT board lot when balance ≥ ₱7,530 (~4 months) |
 | Crypto (5 × ₱200) | ₱1,000 | Bitget | Qubic, Starknet, Tidecoin, Neptune Cash, QRL |
+
+> **Stopped contributions — still holding:**
+> - **DMC** — 300 shares · ~₱2,969 in DragonFi PERA · let ride passively · dividends credited to DragonFi cash
+> - **ATRAM Global Tech Feeder** — ~₱8K in GCash GFunds · no new contributions · VWRA covers global tech · keeping as IBKR fallback
 
 ---
 
@@ -233,6 +235,39 @@ Set a **recurring alarm** on your phone:
 - [ ] **PERA auto-calculate from transactions** — instead of manually updating `pera_annual_contributed` in settings, auto-sum all PERA transactions for current year
 - [ ] **Payday log auto-selects date** — pre-fill today's date when logging, editable if backdating
 - [ ] **Add/remove investments via Settings UI** — currently requires SQL. Build a simple form in Settings screen to add new investments without touching the database directly.
+- [ ] **Investment contribution status + dynamic checklist**  
+  > Replace `is_active` boolean with a granular `contribution_status` field that controls portfolio visibility and auto‑generates the payday checklist.  
+  > This makes stopping/restarting contributions a one‑click operation and eliminates manual editing of `index.html` each time.
+
+  **New column:**
+  ```sql
+  alter table investments 
+  add column contribution_status text 
+  default 'active' 
+  check (contribution_status in ('active', 'paused', 'stopped', 'closed'));
+  ```
+   **Four clear states:**
+  - `active` — shows in portfolio, appears in payday checklist
+  - `paused` — shows in portfolio (muted), temporarily excluded from checklist
+  - `stopped` — shows in portfolio with “Holding” note, permanently excluded from checklist
+  - `closed` — fully exited, treated as `is_active = false` (archived)
+
+  **Initial backfill** (run once after migration):
+  ```sql
+  update investments set contribution_status = 'active' where is_active = true;
+  update investments set contribution_status = 'stopped' 
+    where name in ('DMCI Holdings Inc.', 'ATRAM Global Technology Feeder Fund');
+  update investments set contribution_status = 'closed' where is_active = false; 
+  ```
+
+  **UI behaviour:**
+  - Portfolio screen: filterable tabs (Active / Holding / Closed / All).
+  - Tap any investment → edit form with `contribution_status` dropdown.
+  - Changing status to stopped or paused instantly hides it from the payday checklist.
+
+  **Future extension:**
+  - Add monthly_contribution column so the entire checklist can be generated from the database (no more hard‑coded plan).
+  - Fully deprecate `is_active`.
 
 ### 🟢 Nice to Have
 - [ ] **Multi-user support** — add `user_id` to all tables, update RLS policies. Currently any authenticated user sees all data.
@@ -301,14 +336,16 @@ Set a **recurring alarm** on your phone:
 - **Low-cost** — VWRA (0.22% ER), PERA tax credit (5%), MP2 tax-free returns
 
 **Monthly totals:**
-- PERA equities: ₱7,000 (35%)
-- Global index VWRA: ₱6,000 (30%)
+- PERA equities (OGP+SGP+MBT+ICT staging+BPI MMF): ₱10,000 (50%)
+- Global index VWRA: ₱4,000 (20%)
 - Government MP2: ₱3,000 (15%)
 - REITs: ₱1,000 (5%)
-- Stocks: ₱1,000 (5%)
 - COOP: ₱1,000 (5%)
 - Crypto: ₱1,000 (5%)
-
 ---
 
 *Built April 2026 · engmanmano · Powered by boring consistency 🌱*
+
+
+---
+
