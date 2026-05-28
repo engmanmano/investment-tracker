@@ -520,4 +520,39 @@ order by is_active desc, name;
 
 ---
 
-*InvestTrack Maintenance Guide · engmanmano · Updated April 2026*
+## 11. SUPABASE API ACCESS (GRANTS)
+
+> ⚠️ As of October 30, 2026, Supabase requires explicit GRANT statements for all tables to be accessible via the API. Run the fix below if tables ever stop responding.
+
+### One-time fix for existing tables (run once)
+```sql
+-- Grant access to all existing tables
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON accounts, investments, payday_logs, transactions, settings
+TO authenticated;
+
+-- Grant access to sequences (for auto-generated IDs)
+GRANT USAGE ON ALL SEQUENCES IN SCHEMA public
+TO authenticated;
+```
+
+### Every time you create a NEW table
+```sql
+-- Add this at the end of any new table creation SQL
+GRANT SELECT, INSERT, UPDATE, DELETE ON your_new_table TO authenticated;
+```
+
+### If your app suddenly can't read/write data
+This is likely a grants issue. Run:
+```sql
+-- Check which tables have grants
+SELECT grantee, table_name, privilege_type
+FROM information_schema.role_table_grants
+WHERE table_schema = 'public'
+ORDER BY table_name;
+```
+
+If any of your tables are missing — re-run the one-time fix above.
+
+### Why `authenticated` only?
+Your app has RLS enabled on all tables — anonymous users are already blocked by policy. Only logged-in users (you) can access data. This is correct and secure. 🔒
